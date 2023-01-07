@@ -45,6 +45,8 @@ print(response)
 #   "parent_id": self.parent_id,
 # }
 ```
+# Proxy
+`http://localhost:8080`
 
 # Awesome ChatGPT
 
