@@ -1,7 +1,9 @@
 from revChatGPT.ChatGPT import Chatbot
+import prompt_inputs
 import os
 import sys
 from datetime import datetime
+import time
 import json
 import logging
 
@@ -25,21 +27,32 @@ stream_handler = logging.StreamHandler()
 # stream_handler.setLevel(logging.INFO)
 logger.addHandler(stream_handler)
 
-prompt = """Misunderstanding nonverbal cues: In a high-context culture, nonverbal cues such as body language and facial expressions may convey a great deal of meaning. A person from a low-context culture who is not attuned to these cues may misunderstand what is being communicated, leading to confusion or misunderstandings.
-
-Generate an example conversation between a person from a high-context culture (H) and a person from a low-context culture (L) to illustrate this statement
-"""
+path_prompt_dict = prompt_inputs.savepath_prompts
 
 with open("config.json") as f:
+    config = json.loads(f.read())
     chatbot = Chatbot(
-            json.loads(f.read()),
+            {"session_token": config["session_token9243"], "proxy": config["proxy"], "driver_exec_path": "/usr/bin/chromedriver", "browser_exec_path": "/usr/bin/google-chrome"},
             conversation_id=None,
             parent_id=None
         )
-with open(f"Log/nonverbal_cues_dialog.txt", mode="w") as f:
-    for i in range(50):
-        response = chatbot.ask(prompt, conversation_id=None, parent_id=None)
-        response["prompt"] = prompt
-        logger.info(response)
-        f.write(response["message"])
-        chatbot.refresh_session()
+
+for path, prompt in path_prompt_dict.items():
+    if path != "too_blunt_dialog.txt":
+        continue
+
+    with open(f"Log/{path}", mode="a") as f:
+        for i in range(5):
+            while(1):
+                try:
+                    response = chatbot.ask(prompt, conversation_id=None, parent_id=None)
+                except Exception as e:
+                    logger.error(e)
+                    time.sleep(120)
+                else:
+                    break
+            response["prompt"] = prompt
+            logger.info(response)
+            f.write(" ".join(response["message"].split()))
+            f.write("\n")
+            chatbot.refresh_session()
